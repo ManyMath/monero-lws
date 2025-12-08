@@ -41,6 +41,7 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: build
+        args: --config 'resolver.incompatible-rust-versions="fallback"'
 
   doc:
     name: Build doc
