@@ -33,6 +33,7 @@ use std::{
     fmt::Debug,
     iter::{empty, once},
     sync::Arc,
+    time::Duration,
 };
 
 enum RpcParams {
@@ -101,9 +102,12 @@ pub struct LwsRpcClient {
 
 impl LwsRpcClient {
     pub fn new(addr: String) -> Self {
+        let mut client_builder = reqwest::ClientBuilder::new();
+        let timeout = Duration::from_secs(10);
+        client_builder = client_builder.timeout(timeout);
         Self {
             inner: CallerWrapper(Arc::new(RemoteCaller {
-                http_client: reqwest::ClientBuilder::new().build().unwrap(),
+                http_client: client_builder.build().unwrap(),
                 addr,
             })),
         }
