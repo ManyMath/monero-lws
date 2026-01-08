@@ -33,6 +33,7 @@ use std::{
     fmt::Debug,
     iter::{empty, once},
     sync::Arc,
+    time::Duration,
 };
 
 enum RpcParams {
@@ -101,23 +102,17 @@ pub struct LwsRpcClient {
 
 impl LwsRpcClient {
     pub fn new(addr: String, proxy: Option<String>) -> Self {
+        let mut client_builder = reqwest::ClientBuilder::new();
+        let timeout = Duration::from_secs(10);
+        client_builder = client_builder.timeout(timeout);
         if let Some(proxy_address) = proxy {
-            Self {
-                inner: CallerWrapper(Arc::new(RemoteCaller {
-                    http_client: reqwest::Client::builder()
-                        .proxy(reqwest::Proxy::all(proxy_address).unwrap())
-                        .build()
-                        .unwrap(),
-                    addr,
-                })),
-            }
-        } else {
-            Self {
-                inner: CallerWrapper(Arc::new(RemoteCaller {
-                    http_client: reqwest::ClientBuilder::new().build().unwrap(),
-                    addr,
-                })),
-            }
+            client_builder = client_builder.proxy(reqwest::Proxy::all(proxy_address).unwrap());
+        }
+        Self {
+            inner: CallerWrapper(Arc::new(RemoteCaller {
+                http_client: client_builder.build().unwrap(),
+                addr,
+            })),
         }
     }
 
